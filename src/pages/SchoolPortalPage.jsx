@@ -31,12 +31,12 @@ const SchoolHeader = ({ schoolName, onLogout, applicationsCount, hasProfile, cur
           </Link>
         )}
         {/* Approval Status removed per request */}
-        <Link
+        {/* <Link
           to="/school-portal/shortlisted"
           className="text-gray-600 hover:text-blue-600 flex items-center"
         >
           <Star size={18} className="mr-2" /> Shortlisted Applications
-        </Link>
+        </Link> */}
         <Link
           to="/school-portal/applications"
           className="text-gray-600 hover:text-blue-600 flex items-center relative"
@@ -114,6 +114,7 @@ const ViewStudentApplications = ({ }) => {
       if (currentUser?._id) {
         try {
           // Use authId to find the school in schools collection where authId matches
+          debugger
           const schoolProfileResponse = await getSchoolByAuthId(currentUser._id);
           const schoolProfileData = schoolProfileResponse?.data.data[0];
 
