@@ -935,6 +935,7 @@ const RegistrationPage = () => {
             admissionStartDate: new Date(timeline.admissionStartDate),
             admissionEndDate: new Date(timeline.admissionEndDate),
             status: timeline.status,
+            applicationFee: timeline.applicationFee ?? 0,
             documentsRequired: (timeline.documentsRequired || []).filter(doc => doc.trim()),
               eligibility: {
               admissionLevel: timeline.admissionLevel,
@@ -1674,6 +1675,7 @@ const RegistrationPage = () => {
           status: t.status || '',
           documentsRequired: Array.isArray(t.documentsRequired) ? t.documentsRequired : [],
           admissionLevel: t.eligibility?.admissionLevel || '',
+          applicationFee: t.applicationFee ?? 0,
           ageCriteria: t.eligibility?.ageCriteria || '',
           otherInfo: t.eligibility?.otherInfo || ''
         })));
@@ -3766,6 +3768,29 @@ const RegistrationPage = () => {
                           <option value="Grade 6-10">Grade 6-10</option>
                         </select>
                       </div>
+                      <div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Application Fee (Optional)
+  </label>
+  <input
+    type="number"
+    min="0"
+    placeholder="e.g., 500"
+    value={timeline.applicationFee ?? ''}
+    onChange={(e) => {
+      const next = admissionSteps.slice();
+      const value = e.target.value;
+
+      next[index] = { 
+        ...next[index], 
+        applicationFee: value === '' ? 0 : Number(value) 
+      };
+
+      setAdmissionSteps(next);
+    }}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+  />
+</div>
 
                       {/* Age Criteria */}
                       <div className="md:col-span-2">
@@ -3866,7 +3891,8 @@ const RegistrationPage = () => {
                     admissionLevel: '',
                     ageCriteria: '',
                     otherInfo: '',
-                    documentsRequired: []
+                    documentsRequired: [],
+                    applicationFee: 0
                   }])}
                   className="mt-4 flex items-center text-sm text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-200"
                 >
