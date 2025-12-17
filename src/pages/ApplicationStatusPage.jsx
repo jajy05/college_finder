@@ -14,31 +14,25 @@ const ApplicationStatusPage = () => {
   const [schoolNameById, setSchoolNameById] = useState({});
   const [cachedAppliedSchools, setCachedAppliedSchools] = useState([]);
 
-  const handleViewPdf = async (studId, applicationId) => {
-  if (!studId || !applicationId) {
-    console.error("Missing studId or applicationId", { studId, applicationId });
-    return;
-  }
+ const handleViewPdf = async (studId, applicationId) => {
+  if (!studId || !applicationId) return;
 
   try {
-    // ensure PDF exists
     await generateStudentPdf(studId, applicationId);
-  } catch (err) {
-    console.warn("PDF generation failed or already exists", err);
-  }
+  } catch {}
 
-  const apiBaseURL = import.meta.env.VITE_API_BASE_URL;
-
-  if (!apiBaseURL) {
-    console.error("VITE_API_BASE_URL is not defined");
-    return;
-  }
+  const apiBaseURL =
+    import.meta.env.VITE_API_BASE_URL?.startsWith("http")
+      ? import.meta.env.VITE_API_BASE_URL
+      : "https://backend-tc-sa-v2.onrender.com/api";
 
   const pdfUrl = `${apiBaseURL}/users/pdf/view/${studId}/${applicationId}`;
 
-  // open directly (NO fetch, NO blob, NO CORS)
+  console.log("OPENING PDF:", pdfUrl);
+
   window.open(pdfUrl, "_blank", "noopener,noreferrer");
 };
+
 
 
 
