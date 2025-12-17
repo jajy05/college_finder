@@ -352,29 +352,35 @@ const SchoolDetailsPage = ({ shortlist, onShortlistToggle }) => {
             {/* School Profile Photo - Optimized */}
             <div className="flex-shrink-0">
               <img
-                src={(() => {
-                  // Simplified image source selection - check only essential fields
-                  const logoUrl = typeof school.logo === 'object' ? school.logo?.url : school.logo;
-                  const imageSources = [
-                    school.photos?.[0],
-                    school.profilePhoto,
-                    school.image,
-                    logoUrl,
-                    school.profileImage,
-                    school.schoolLogo
-                  ].filter(Boolean);
+               src={(() => {
+    // Normalize possible image sources to URL strings
+    const logoUrl =
+      typeof school.logo === "object" ? school.logo?.url : school.logo;
 
-                  return imageSources[0] || "/api/placeholder/200/200";
-                })()}
-                alt={`${school.name} profile`}
-                className="w-32 h-32 md:w-40 md:h-40 rounded-lg object-cover border-4 border-gray-200 shadow-lg"
-                loading="lazy"
-                onError={(e) => {
-                  // Simplified error handling
-                  if (!e.target.src.includes('placeholder')) {
-                    e.target.src = "/api/placeholder/200/200";
-                  }
-                }}
+    const firstPhotoUrl =
+      typeof school.photos?.[0] === "object"
+        ? school.photos?.[0]?.url
+        : school.photos?.[0];
+
+    const imageSources = [
+      firstPhotoUrl,
+      school.profilePhoto,
+      school.image,
+      logoUrl,
+      school.profileImage,
+      school.schoolLogo
+    ].filter(Boolean);
+
+    return imageSources[0] || "/api/placeholder/200/200";
+  })()}
+  alt={`${school.name} profile`}
+  className="w-32 h-32 md:w-40 md:h-40 rounded-lg object-cover border-4 border-gray-200 shadow-lg"
+  loading="lazy"
+  onError={(e) => {
+    if (!e.currentTarget.src.includes("placeholder")) {
+      e.currentTarget.src = "/api/placeholder/200/200";
+    }
+  }}
               />
             </div>
             
@@ -725,11 +731,12 @@ const SchoolDetailsPage = ({ shortlist, onShortlistToggle }) => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {school.internationalPhotos.map((photo, index) => (
                       <div key={index} className="relative">
-                        <img 
-                          src={photo} 
-                          alt={`Exchange photo ${index + 1}`} 
-                          className="w-full h-32 object-cover rounded-lg"
-                        />
+                       <img
+  src={school.logo?.url}
+  alt={`${school.name} logo`}
+  className="w-full h-full object-contain"
+/>
+
                         <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-300 rounded-lg flex items-center justify-center">
                           <span className="text-white opacity-0 hover:opacity-100 transition-opacity duration-300 text-sm">
                             Exchange Visit
