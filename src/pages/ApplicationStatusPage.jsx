@@ -24,15 +24,22 @@ const ApplicationStatusPage = () => {
     // ensure PDF exists
     await generateStudentPdf(studId, applicationId);
   } catch (err) {
-    console.warn("PDF generation failed (may already exist)", err);
+    console.warn("PDF generation failed or already exists", err);
   }
 
-  // open PDF
-  window.open(
-    `/api/users/pdf/view/${studId}/${applicationId}`,
-    "_blank"
-  );
+  const apiBaseURL = import.meta.env.VITE_API_BASE_URL;
+
+  if (!apiBaseURL) {
+    console.error("VITE_API_BASE_URL is not defined");
+    return;
+  }
+
+  const pdfUrl = `${apiBaseURL}/users/pdf/view/${studId}/${applicationId}`;
+
+  // open directly (NO fetch, NO blob, NO CORS)
+  window.open(pdfUrl, "_blank", "noopener,noreferrer");
 };
+
 
 
   useEffect(() => {
