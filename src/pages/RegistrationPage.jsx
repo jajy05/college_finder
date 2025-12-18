@@ -3151,21 +3151,42 @@ const RegistrationPage = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Documents Required (Optional)</label>
-                      <input
-                        type="text"
-                        value={(scholarship.documentsRequired || []).join(', ')}
-                        onChange={(e) => {
-                          const newScholarships = [...(formData.scholarships || [])];
-                          const docs = e.target.value.split(',').map(d => d.trim()).filter(Boolean);
-                          newScholarships[index] = { ...newScholarships[index], documentsRequired: docs };
-                          setFormData(prev => ({ ...prev, scholarships: newScholarships }));
-                        }}
-                        placeholder="Leave empty or enter: Income certificate, Mark sheet (comma-separated)"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                      />
-                    </div>
+                   <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Documents Required (Optional)
+  </label>
+
+  <select
+    value={scholarship.documentsRequired?.[0] || ''}
+    onChange={(e) => {
+      const value = e.target.value;
+
+      const newScholarships = [...(formData.scholarships || [])];
+      newScholarships[index] = {
+        ...newScholarships[index],
+        documentsRequired: value ? [value] : []
+      };
+
+      setFormData(prev => ({
+        ...prev,
+        scholarships: newScholarships
+      }));
+    }}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm
+               focus:ring-indigo-500 focus:border-indigo-500"
+  >
+    <option value="">Select Document</option>
+    <option value="Income Certificate">Income Certificate</option>
+    <option value="Caste Certificate">Caste Certificate</option>
+    <option value="Aadhar Card">Aadhar Card</option>
+    <option value="Previous Marksheet">Previous Marksheet</option>
+    <option value="Bonafide Certificate">Bonafide Certificate</option>
+    <option value="Sports Achievement Certificate">
+      Sports Achievement Certificate
+    </option>
+  </select>
+</div>
+
                   </div>
                   <div className="flex justify-end mt-3">
                     <button
