@@ -207,7 +207,7 @@ const ViewStudentApplications = ({ }) => {
 
       // Filter to show only PENDING, REJECTED, and REVIEWED applications
       // Accepted, Interview, Written Exam, and Shortlisted go to "Shortlisted Applications"
-      const pendingApplications = (response.data || []).filter((a) => {
+      /*const pendingApplications = (response.data || []).filter((a) => {
         const status = (a.status || '').toString().toLowerCase();
         const keepInViewStudent = status === 'pending' ||
           status === 'rejected' ||
@@ -232,9 +232,19 @@ const ViewStudentApplications = ({ }) => {
         schoolId: detectedSchoolId,
         studentIds: pendingApplications.map(a => a?.studId).filter(Boolean),
         applicationIds: pendingApplications.map(a => a?._id || a?.id).filter(Boolean)
-      });
+      });*/
 
-      setApplications(pendingApplications);
+      // For now, show all applications in this view
+      const allApplications = response.data || [];
+
+console.log(`📊 [FETCH RESULTS] Applications fetched:`, {
+  totalForms: allApplications.length,
+  schoolId: detectedSchoolId,
+  statuses: allApplications.map(a => a.status)
+});
+
+setApplications(allApplications);
+
     } catch (error) {
       console.error('❌ [FETCH APPLICATIONS ERROR] Failed to fetch applications:', {
         errorMessage: error.message,
