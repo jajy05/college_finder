@@ -467,10 +467,10 @@ const RegistrationPage = () => {
   const [logoPreview, setLogoPreview] = useState("");
   // UI-only additions: social links (not sent to backend)
   const [socialLinks, setSocialLinks] = useState({
-    facebook: "",
-    twitter: "",
-    instagram: "",
-    linkedin: "",
+   // Prepared for when you add it to schema
+  instagramHandle: "",
+  twitterHandle: "",
+  linkedinHandle: "",
   });
   const [facultyQuality, setFacultyQuality] = useState([
     { name: '', qualification: '', awards: '', experience: '' }
@@ -753,6 +753,7 @@ const handleUseCurrentLocation = () => {
         setIsSubmitting(false);
         return;
       }
+      debugger;
 
       const payload = {
         // Core School Fields (matching backend School model)
@@ -781,7 +782,13 @@ const handleUseCurrentLocation = () => {
         TeacherToStudentRatio: formData.TeacherToStudentRatio,
         rank: formData.rank,
         specialist: Array.isArray(formData.specialist) ? formData.specialist : [],
-        tags: Array.isArray(formData.tags) ? formData.tags : []
+        tags: Array.isArray(formData.tags) ? formData.tags : [],
+       
+         
+ instagramHandle: socialLinks.instagramHandle,
+  twitterHandle: socialLinks.twitterHandle,
+  linkedinHandle: socialLinks.linkedinHandle,
+
       };
 
       // Always include authId to ensure it's set (for both new and existing schools)
@@ -1365,9 +1372,7 @@ const handleUseCurrentLocation = () => {
         if (draft.logoPreview) {
           setLogoPreview(draft.logoPreview);
         }
-        if (draft.socialLinks) {
-          setSocialLinks(draft.socialLinks);
-        }
+        
         if (draft.admissionSteps) {
           setAdmissionSteps(draft.admissionSteps);
         }
@@ -1540,7 +1545,7 @@ const handleUseCurrentLocation = () => {
         setLogoPreview(logoUrl);
       }
     }
-    
+    debugger;
     console.log('📝 Setting basic form data...');
     setFormData(prev => ({
       ...prev,
@@ -1567,9 +1572,17 @@ const handleUseCurrentLocation = () => {
       TeacherToStudentRatio: school.TeacherToStudentRatio || "",
       rank: school.rank || "",
       specialist: Array.isArray(school.specialist) ? school.specialist : [],
-      tags: Array.isArray(school.tags) ? school.tags : []
+      tags: Array.isArray(school.tags) ? school.tags : [],
+      
+      
     }));
-    
+    setSocialLinks({
+  
+  instagramHandle: school.instagramHandle || "",
+  twitterHandle: school.twitterHandle || "",
+  linkedinHandle: school.linkedinHandle || ""
+});
+    debugger;
     // Load sub-resources in parallel and prefill form controls
     try {
       const [
@@ -1960,6 +1973,14 @@ const handleUseCurrentLocation = () => {
         tags: Array.isArray(school.tags) ? school.tags : []
       }));
       
+     setSocialLinks({
+   // Note: Ensure this exists in your backend schema
+  instagramHandle: school.instagramHandle || "", 
+  twitterHandle: school.twitterHandle || "", 
+  linkedinHandle: school.linkedinHandle || ""
+});
+
+      
       // Load sub-resources in parallel and prefill form controls
       const [
         amenitiesRes,
@@ -2261,32 +2282,26 @@ const handleUseCurrentLocation = () => {
              <div className="mb-6 bg-white border rounded-lg p-4">
                <div className="text-sm font-medium text-gray-800 mb-2">Social Media Links</div>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <input
-                   type="url"
-                   placeholder="https://facebook.com/yourschool"
-                   value={socialLinks.facebook}
-                   onChange={(e) => setSocialLinks((p) => ({ ...p, facebook: e.target.value }))}
-                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                 />
+                
                  <input
                    type="url"
                    placeholder="https://instagram.com/yourschool"
-                   value={socialLinks.instagram}
-                   onChange={(e) => setSocialLinks((p) => ({ ...p, instagram: e.target.value }))}
+                   value={socialLinks.instagramHandle}
+                   onChange={(e) => setSocialLinks((p) => ({ ...p, instagramHandle: e.target.value }))}
                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                  />
                  <input
                    type="url"
                    placeholder="https://twitter.com/yourschool"
-                   value={socialLinks.twitter}
-                   onChange={(e) => setSocialLinks((p) => ({ ...p, twitter: e.target.value }))}
+                   value={socialLinks.twitterHandle}
+                   onChange={(e) => setSocialLinks((p) => ({ ...p, twitterHandle: e.target.value }))}
                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                  />
                  <input
                    type="url"
                    placeholder="https://linkedin.com/company/yourschool"
-                   value={socialLinks.linkedin}
-                   onChange={(e) => setSocialLinks((p) => ({ ...p, linkedin: e.target.value }))}
+                   value={socialLinks.linkedinHandle}
+                   onChange={(e) => setSocialLinks((p) => ({ ...p, linkedinHandle: e.target.value }))}
                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                  />
                </div>
