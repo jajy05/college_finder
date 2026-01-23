@@ -15,7 +15,7 @@ const SchoolRedirect = () => {
       if (!currentUser?._id) return;
       try {
         await checkSchoolProfileExists(currentUser._id);
-        navigate("/school-portal");
+        navigate("/school-portal/register");
       } catch (error) {
         navigate("/school-registration");
       }
