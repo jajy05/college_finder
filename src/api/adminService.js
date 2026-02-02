@@ -99,36 +99,34 @@ export const addcollege = (data) => {
 
 
 export const addAmenities = (data) =>
-  apiClient.post('/college/amenities/add', data);
+  apiClient.post('/colleges/amenities/add', data);
 
 
 export const addAlumni = (data) =>
-  apiClient.post('/college/alumnus/add', data);
+  apiClient.post('/colleges/alumnus/add', data);
 
 
 export const addOtherDetails = (data) =>
-  apiClient.post('/college/other-details/add', data);
-
+  apiClient.post('/colleges/other-details/add', data);
 export const addFeesAndScholarships = (data) =>
-  apiClient.post('/college/fees-scholarships/add', data);
+  apiClient.post('/colleges/fees-scholarships/add', data);
 export const addAcademics = (data) =>
-  apiClient.post('/college/academics/add', data);
-
-export const addFaculty = (data) => apiClient.post('/college/faculty/add', data);
+  apiClient.post('/colleges/academics/add', data);  
+export const addFaculty = (data) => apiClient.post('/colleges/faculty/add', data);
 
 
 export const addTechnologyAdoption = (data) =>
-  apiClient.post('/college/technology-adoption/add', data);
+  apiClient.post('/colleges/technology-adoption/add', data);
 export const getAcademicsById = (collegeId) =>
-  apiClient.get(`/college/academics/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/academics/${encodeURIComponent(collegeId)}`);
 export const getOtherDetailsById = (collegeId) =>
-  apiClient.get(`/college/other-details/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/other-details/${encodeURIComponent(collegeId)}`);
 export const getTechnologyAdoptionById = (collegeId) =>
-  apiClient.get(`/college/technology-adoption/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/technology-adoption/${encodeURIComponent(collegeId)}`);
 export const getSafetyAndSecurityById = (collegeId) =>
-  apiClient.get(`/college/safety/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/safety/${encodeURIComponent(collegeId)}`);
 export const getInternationalExposureById = (collegeId) =>
-  apiClient.get(`/college/international/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/international/${encodeURIComponent(collegeId)}`);
 
 
 
@@ -142,18 +140,18 @@ export const getcollegeById = (collegeId) =>
   apiClient.get(`/colleges/${encodeURIComponent(collegeId)}`);
 
 export const getcollegeById1 = (collegeId, config) =>
-  apiClient.get(`/admin/college/${encodeURIComponent(collegeId)}`, config);
+  apiClient.get(`/admin/colleges/${encodeURIComponent(collegeId)}`, config);
 
 export const updatecollegeInfo = (collegeId, data) =>
-  apiClient.put(`/admin/college/auth/${encodeURIComponent(collegeId)}`, data);
+  apiClient.put(`/colleges/auth/${encodeURIComponent(collegeId)}`, data);
 
 export const updatecollegetatus = (collegeId, newStatus) =>
-  apiClient.put(`/admin/college/${encodeURIComponent(collegeId)}`, { status: newStatus });
+  apiClient.put(`/colleges/${encodeURIComponent(collegeId)}`, { status: newStatus });
 export const getcollegesByStatus = (status) => getcollegeByStatus(status);
 
 export const getcollegeByStatus = async (status) => {
   try {
-    return await apiClient.get(`/admin/college/status/${encodeURIComponent(status)}`);
+    return await apiClient.get(`colleges/status/${encodeURIComponent(status)}`);
   } catch (error) {
     const message = error?.response?.data?.message || '';
     if (error?.response?.status === 500 && message.includes('No college found with status')) {
@@ -169,12 +167,12 @@ export const getcollegeByStatus = async (status) => {
   }
 };
 
-export const getAllcollege = () => apiClient.get('/admin/college/status/all');
+export const getAllcollege = () => apiClient.get('/admin/colleges/status/all');
 export const getPendingcollege = async () => {
   const candidates = [
-    '/admin/college/admin/pending',
-    '/admin/college/pending',
-    '/admin/college/status/pending',
+    '/admin/colleges/admin/pending',
+    '/admin/colleges/pending',
+    '/admin/colleges/status/pending',
   ];
   let lastErr;
   for (const path of candidates) {
@@ -199,21 +197,21 @@ export const getPendingcollege = async () => {
 
 // GET faculty by collegeId
 export const getFacultyById = (collegeId) =>
-  apiClient.get(`/college/faculty/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/faculty/${encodeURIComponent(collegeId)}`);
 
 // UPDATE faculty
 export const updateFaculty = (collegeId, data) =>
-  apiClient.put(`/college/faculty/${encodeURIComponent(collegeId)}`, data);
+  apiClient.put(`/colleges/faculty/${encodeURIComponent(collegeId)}`, data);
 
 // DELETE faculty (optional)
 export const deleteFaculty = (collegeId) =>
-  apiClient.delete(`/college/faculty/${encodeURIComponent(collegeId)}`);
+  apiClient.delete(`/colleges/faculty/${encodeURIComponent(collegeId)}`);
 
 
 export const getAdmissionTimelineById = async (collegeId) => {
   try {
     return await apiClient.get(
-      `/college/admission/${encodeURIComponent(collegeId)}`,
+      `/colleges/admission/${encodeURIComponent(collegeId)}`,
       {
         headers: { 'X-Silent-Request': '1' }
       }
@@ -321,112 +319,112 @@ export const checkcollegeProfileExists = async (authId) => {
  * ============================
  */
 export const addHostel = (data) =>
-  apiClient.post('/college/hostel/add', data);
+  apiClient.post('/colleges/hostel/add', data);
 
 export const getHostelsByCollege = (collegeId) =>
-  apiClient.get(`/college/hostel/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/hostel/${encodeURIComponent(collegeId)}`);
 
 export const updateHostel = (hostelId, data) =>
-  apiClient.put(`/college/hostel/${encodeURIComponent(hostelId)}`, data);
+  apiClient.put(`/colleges/hostel/${encodeURIComponent(hostelId)}`, data);
 
 export const deleteHostel = (hostelId) =>
-  apiClient.delete(`/college/hostel/${encodeURIComponent(hostelId)}`);
+  apiClient.delete(`/colleges/hostel/${encodeURIComponent(hostelId)}`);
 export const addExam = (data) =>
-  apiClient.post('/college/exam', data);
+  apiClient.post('/colleges/exam', data);
 
 export const getCollegeExams = (id) =>
-  apiClient.get(`/college/exam/${encodeURIComponent(id)}`);
+  apiClient.get(`/colleges/exam/${encodeURIComponent(id)}`);
 export const upsertCourseFee = (data) =>
-  apiClient.post('/college/course-fee', data);
+  apiClient.post('/colleges/course-fee', data);
 
 export const getCourseFeesByCollege = (collegeId) =>
-  apiClient.get(`/college/course-fee/college/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/course-fee/college/${encodeURIComponent(collegeId)}`);
 export const addCourse = (data) =>
-  apiClient.post('/college/course/add', data);
+  apiClient.post('/colleges/course/add', data);
 
 export const getCoursesByCollege = (collegeId) =>
-  apiClient.get(`/college/courses/college/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/courses/college/${encodeURIComponent(collegeId)}`);
 
 export const updateCourse = (courseId, data) =>
-  apiClient.put(`/college/course/${encodeURIComponent(courseId)}`, data);
+  apiClient.put(`/colleges/course/${encodeURIComponent(courseId)}`, data);
 export const addPlacement = (data) =>
-  apiClient.post('/college/placement/add', data);
+  apiClient.post('/colleges/placement/add', data);
 
 export const getPlacementsByCourse = (courseId) =>
-  apiClient.get(`/college/placement/${encodeURIComponent(courseId)}`);
+  apiClient.get(`/colleges/placement/${encodeURIComponent(courseId)}`);
 
 export const getPlacementsByCollege = (collegeId) =>
-  apiClient.get(`/college/placement/college/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/placement/college/${encodeURIComponent(collegeId)}`);
 
 export const updatePlacement = (placementId, data) =>
-  apiClient.put(`/college/placement/${encodeURIComponent(placementId)}`, data);
+  apiClient.put(`/colleges/placement/${encodeURIComponent(placementId)}`, data);
 export const addScholarship = (data) =>
-  apiClient.post('/college/scholarship/add', data);
+  apiClient.post('/colleges/scholarship/add', data);
 export const getFeesAndScholarshipsById = (collegeId) => {
-  return apiClient.get(`/admin/colleges/fees-scholarships/${encodeURIComponent(collegeId)}`);
+  return apiClient.get(`colleges/fees-scholarships/${encodeURIComponent(collegeId)}`);
 };
 export const getInfrastructureById = (collegeId) => {
-  return apiClient.get(`/admin/colleges/infrastructure/${encodeURIComponent(collegeId)}`);
+  return apiClient.get(`/colleges/infrastructure/${encodeURIComponent(collegeId)}`);
 };
 export const getScholarshipsByCollege = (collegeId) =>
-  apiClient.get(`/college/scholarship/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/scholarship/${encodeURIComponent(collegeId)}`);
 export const addActivities = (data) =>
-  apiClient.post('/college/activities/add', data);
+  apiClient.post('/colleges/activities/add', data);
 export const getActivitiesByCollegeId = (collegeId) =>
-  apiClient.get(`/college/activities/${collegeId}`);
+  apiClient.get(`/colleges/activities/${collegeId}`);
 
 export const getActivitiesByCollege = (collegeId) =>
-  apiClient.get(`/college/activities/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/activities/${encodeURIComponent(collegeId)}`);
 
 export const updateActivities = (collegeId, data) =>
-  apiClient.put(`/college/activities/${encodeURIComponent(collegeId)}`, data);
+  apiClient.put(`/colleges/activities/${encodeURIComponent(collegeId)}`, data);
 
 export const deleteActivities = (collegeId) =>
-  apiClient.delete(`/college/activities/${encodeURIComponent(collegeId)}`);
+  apiClient.delete(`/colleges/activities/${encodeURIComponent(collegeId)}`);
 export const addInfrastructure = (data) =>
-  apiClient.post('/college/infrastructure/add', data);
+  apiClient.post('/colleges/infrastructure/add', data);
 
 export const getInfrastructureByCollege = (collegeId) =>
-  apiClient.get(`/college/infrastructure/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/infrastructure/${encodeURIComponent(collegeId)}`);
 
 export const updateInfrastructure = (collegeId, data) =>
-  apiClient.put(`/college/infrastructure/${encodeURIComponent(collegeId)}`, data);
+  apiClient.put(`/colleges/infrastructure/${encodeURIComponent(collegeId)}`, data);
 
 export const deleteInfrastructure = (collegeId) =>
-  apiClient.delete(`/college/infrastructure/${encodeURIComponent(collegeId)}`);
+  apiClient.delete(`/colleges/infrastructure/${encodeURIComponent(collegeId)}`);
 export const addInternationalExposure = (data) =>
-  apiClient.post('/college/international/add', data);
+  apiClient.post('/colleges/international/add', data);
 
 export const getInternationalExposureByCollege = (collegeId) =>
-  apiClient.get(`/college/international/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/international/${encodeURIComponent(collegeId)}`);
 
 export const updateInternationalExposure = (collegeId, data) =>
-  apiClient.put(`/college/international/${encodeURIComponent(collegeId)}`, data);
+  apiClient.put(`/colleges/international/${encodeURIComponent(collegeId)}`, data);
 export const addSafetyAndSecurity = (data) =>
-  apiClient.post('/college/safety/add', data);
+  apiClient.post('/colleges/safety/add', data);
 
 export const getSafetyByCollege = (collegeId) =>
-  apiClient.get(`/college/safety/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/safety/${encodeURIComponent(collegeId)}`);
 
 export const updateSafetyByCollege = (collegeId, data) =>
-  apiClient.put(`/college/safety/${encodeURIComponent(collegeId)}`, data);
+  apiClient.put(`/colleges/safety/${encodeURIComponent(collegeId)}`, data);
 export const addAdmissionTimeline = (data) =>
-  apiClient.post('/college/admission/add', data);
+  apiClient.post('/colleges/admission/add', data);
 
 export const getAdmissionTimelineByCollege = (collegeId) =>
-  apiClient.get(`/college/admission/${encodeURIComponent(collegeId)}`);
+  apiClient.get(`/colleges/admission/${encodeURIComponent(collegeId)}`);
 
 export const updateAdmissionTimeline = (collegeId, data) =>
-  apiClient.put(`/college/admission/${encodeURIComponent(collegeId)}`, data);
+  apiClient.put(`/colleges/admission/${encodeURIComponent(collegeId)}`, data);
 
 export const getAmenitiesByCollegeId = (collegeId) =>
-  apiClient.get(`/college/amenities/${collegeId}`);
+  apiClient.get(`/colleges/amenities/${collegeId}`);
 export const updateAmenities = (collegeId, data) =>
-  apiClient.put(`/college/amenities/${collegeId}`, data);
+  apiClient.put(`/colleges/amenities/${collegeId}`, data);
 export const updateOtherDetails = (collegeId, data) =>
-  apiClient.put(`/college/other-details/${collegeId}`, data);
+  apiClient.put(`/colleges/other-details/${collegeId}`, data);
 export const updateSafetyAndSecurity = (collegeId, data) =>
-  apiClient.put(`/college/safety/${collegeId}`, data);
+  apiClient.put(`/colleges/safety/${collegeId}`, data);
 
 /**
  * ============================
