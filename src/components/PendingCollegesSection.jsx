@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { getcollegesByStatus, updatecollegeStatus } from '../api/adminService';
 import { Link } from 'react-router-dom';
 
-const PendingcollegesSection = () => {
+const PendingCollegesSection = () => {
   const [pendingcolleges, setPendingcolleges] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [acceptingId, setAcceptingId] = useState(null);
@@ -325,4 +325,4 @@ const PendingcollegesSection = () => {
   );
 };
 
-export default PendingcollegesSection;
+export default PendingCollegesSection;
