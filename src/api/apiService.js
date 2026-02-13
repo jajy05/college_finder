@@ -56,7 +56,7 @@ export const fetchStudentPDF = async (studId,applicationId) => {
 // CORRECTED: Properly fetch from Forms API with debugging
 
 export const fetchStudentApplications = async (collegeId) => {
-    
+   
     try {        
         const res = await apiClient.get(`/form/college/${collegeId}`, { 
             headers: { 'X-Silent-Request': '1' } 
@@ -138,7 +138,7 @@ if (application_id) {
     console.log(`🔍 Fetching application ${application_id}`);
 
     const appResponse = await apiClient.get(
-      `/applications/${application_id}`
+      `/application/${application_id}`
     );
 
     application = appResponse?.data?.data || null;

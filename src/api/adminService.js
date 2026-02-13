@@ -283,7 +283,7 @@ export const getcollegeByAuthId = async (authId) => {
     
     console.log(`🔍 Finding college by authId: ${authId}`);
     // ✅ FIXED: Matches router.get('/college/by-auth/:authId')
-    const res = await apiClient.get(`/admin/college/auth/${encodeURIComponent(authId)}`, {
+    const res = await apiClient.get(`/colleges/${encodeURIComponent(authId)}`, {
       headers: { 'X-Silent-Request': '1' }
     });
     console.log(`✅ Found college by authId:`, res?.data);

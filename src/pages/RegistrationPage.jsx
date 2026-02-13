@@ -44,6 +44,12 @@ import {
   updateInternationalExposure,
   updateFaculty,
   updateAdmissionTimeline,
+  getScholarshipsByCollege,
+  addScholarship,
+  upsertCourseFee,
+  getCollegeExams,
+   getPlacementsByCollege,
+
   
   getcollegeByAuthId
 } from "../api/adminService";
@@ -518,6 +524,18 @@ const addPlacement = (courseIndex) => {
     };
   });
 };
+const handleFeeChange = (index, field, value) => {
+  setFormData((prev) => {
+    const updated = [...prev.classFees];
+    updated[index] = {
+      ...updated[index],
+      [field]: value
+    };
+    return { ...prev, classFees: updated };
+  });
+};
+
+
 
 const addCustomStream = (custom) => {
   const val = custom.trim();
@@ -1235,59 +1253,7 @@ try {
       }
 
       // Add fees and scholarships if any (matching backend FeesAndScholarships model)
-      if (formData.classFees?.length > 0 || formData.scholarships?.length > 0 || (formData.feesTransparency !== '' && formData.feesTransparency != null)) {
-        // Validate and clean classFees
-        const validClassFees = (formData.classFees || []).filter(fee => 
-          fee.className && fee.tuition !== undefined && fee.tuition >= 0
-        ).map(fee => ({
-          className: fee.className,
-          tuition: Number(fee.tuition) || 0,
-          activity: Number(fee.activity) || 0,
-          transport: Number(fee.transport) || 0,
-          hostel: Number(fee.hostel) || 0,
-          misc: Number(fee.misc) || 0
-        }));
-
-        // Validate and clean scholarships
-        const validScholarships = (formData.scholarships || []).filter(sch => 
-          sch.name && sch.amount !== undefined && sch.amount >= 0 && sch.type
-        ).map(sch => {
-          const scholarship = {
-            name: sch.name,
-            amount: Number(sch.amount) || 0,
-            type: sch.type
-          };
-          // Only include documentsRequired if it has valid values (non-empty strings)
-          const docs = Array.isArray(sch.documentsRequired) 
-            ? sch.documentsRequired.filter(d => d && d.trim()) 
-            : [];
-          if (docs.length > 0) {
-            scholarship.documentsRequired = docs;
-          }
-          return scholarship;
-        });
-
-        if (validClassFees.length > 0 || validScholarships.length > 0 || (formData.feesTransparency !== '' && formData.feesTransparency != null)) {
-          // Map transparency string values to numbers (if backend expects numbers)
-          let transparencyValue;
-          if (formData.feesTransparency === 'full') transparencyValue = 100;
-          else if (formData.feesTransparency === 'partial') transparencyValue = 50;
-          else if (formData.feesTransparency === 'low') transparencyValue = 0;
-          else if (formData.feesTransparency !== '' && formData.feesTransparency != null) {
-            // If it's already a number, use it
-            transparencyValue = Number(formData.feesTransparency);
-          }
-          
-          const payloadFees = {
-            collegeId,
-            feesTransparency: transparencyValue,
-            classFees: validClassFees,
-            scholarships: validScholarships
-          };
-          console.log('💰 Sending Fees & Scholarships:', payloadFees);
-         
-        }
-      }
+      
 
       // Add/Update Faculty Quality
       if (facultyQuality && facultyQuality.length > 0) {
@@ -1502,174 +1468,207 @@ try {
 const saveAllCollegeData = async (collegeId, courses, admissionSteps) => {
   try {
     // ========================
-    // 1️⃣ SAVE COURSES
+    // 1️⃣ NORMALIZE COURSES
     // ========================
     const normalizedCourses =
-      normalizeCoursesForBackend(courses, collegeId);
+      normalizeCoursesForBackend(courses, collegeId) || [];
 
+    // ========================
+    // 2️⃣ FETCH EXISTING COURSES
+    // ========================
+    const existingRes = await getCoursesByCollege(collegeId);
+
+    const existingCourses =
+      existingRes?.data?.courses ||
+      existingRes?.data?.data ||
+      (Array.isArray(existingRes?.data) ? existingRes.data : []) ||
+      [];
+
+    const existingCourseMap = {};
+
+    existingCourses.forEach((c) => {
+      if (!c || typeof c.name !== "string") return;
+
+      const key = c.name.trim().toLowerCase();
+      if (key) {
+        existingCourseMap[key] = c._id;
+      }
+    });
+
+    // ========================
+    // 3️⃣ ADD ONLY NEW COURSES
+    // ========================
     for (const course of normalizedCourses) {
-      await addCourseAPI({
-        collegeId,
-        courses: [course]
-      });
+      if (!course || typeof course.name !== "string") continue;
+
+      const key = course.name.trim().toLowerCase();
+      if (!key) continue;
+
+      if (!existingCourseMap[key]) {
+        const res = await addCourseAPI({
+          collegeId,
+          courses: [course],
+        });
+
+        const createdCourse =
+          res?.data?.courses?.[0] ||
+          res?.data?.data?.[0];
+
+        if (createdCourse?._id) {
+          existingCourseMap[key] = createdCourse._id;
+        }
+      }
     }
 
     // ========================
-    // 2️⃣ FETCH SAVED COURSES
+    // 4️⃣ REFRESH COURSE LIST
     // ========================
     const courseRes = await getCoursesByCollege(collegeId);
 
     const savedCourses =
-      courseRes.data?.courses ||
-      courseRes.data?.data ||
-      (Array.isArray(courseRes.data) ? courseRes.data : []);
+      courseRes?.data?.courses ||
+      courseRes?.data?.data ||
+      (Array.isArray(courseRes?.data) ? courseRes.data : []) ||
+      [];
 
     if (!savedCourses.length) {
       throw new Error("No courses returned after save");
     }
 
-    // ========================
-    // 3️⃣ CREATE courseIdMap
-    // ========================
     const courseIdMap = {};
+    const courseIdMapByName = {};
+
     savedCourses.forEach((c, i) => {
+      if (!c || !c._id) return;
+
       courseIdMap[i] = c._id;
+
+      if (typeof c.name === "string") {
+        const key = c.name.trim().toLowerCase();
+        if (key) {
+          courseIdMapByName[key] = c._id;
+        }
+      }
     });
 
     console.log("✅ Course ID Map:", courseIdMap);
 
     // ========================
-    // 4️⃣ SAVE EXAMS
+    // 5️⃣ SAVE EXAMS (SAFE)
     // ========================
     const normalizedExams =
-      normalizeExamsForBackend(courses, courseIdMap);
+      normalizeExamsForBackend(courses, courseIdMap) || [];
+
+    const existingExamsRes = await getCollegeExams(collegeId);
+
+    const existingExams =
+      existingExamsRes?.data?.data || [];
 
     for (const exam of normalizedExams) {
-      await addExamAPI(exam);
+      if (!exam || typeof exam.name !== "string") continue;
+
+      const examKey = exam.name.trim().toLowerCase();
+      if (!examKey) continue;
+
+      const alreadyExists = existingExams.some((e) => {
+        if (!e || typeof e.name !== "string") return false;
+        return e.name.trim().toLowerCase() === examKey;
+      });
+
+      if (!alreadyExists) {
+        await addExamAPI(exam);
+      }
     }
 
     // ========================
-    // 5️⃣ SAVE PLACEMENTS
+    // 6️⃣ SAVE PLACEMENTS (SAFE)
     // ========================
     const normalizedPlacements =
-      normalizePlacementsForBackend(courses, courseIdMap);
+      normalizePlacementsForBackend(courses, courseIdMap) || [];
+
+    const existingPlacementRes =
+      await getPlacementsByCollege(collegeId);
+
+    const existingPlacements =
+      existingPlacementRes?.data?.data || [];
 
     for (const placement of normalizedPlacements) {
-      await addPlacementAPI(placement);
-    }
+      if (!placement || !placement.course) continue;
 
-    // ========================
-    // 6️⃣ SAVE ADMISSION TIMELINES (FIXED)
-    // ========================
-   // ========================
-// 6️⃣ SAVE ADMISSION TIMELINES (FINAL, SAFE VERSION)
-// ========================
-if (admissionSteps?.length) {
+      const alreadyExists = existingPlacements.some((p) => {
+        if (!p || !p.course) return false;
+        return String(p.course) === String(placement.course);
+      });
 
-  // ================================
-  // 🔧 REHYDRATE courseId (AUTOSAVE FIX)
-  // ================================
-  const hydratedAdmissionSteps = admissionSteps.map((t, index) => {
-    if (
-      (!t.courseId || t.courseId === "") &&
-      courseIndexMap?.[index]
-    ) {
-      return {
-        ...t,
-        courseId: courseIndexMap[index]
-      };
-    }
-    return t;
-  });
-
-  // ================================
-  // ✅ EXISTING resolver (KEEP THIS)
-  // ================================
-  const resolveCourseId = (rawValue) => {
-    if (!rawValue && rawValue !== 0) return null;
-
-    if (typeof rawValue === "string" && /^[0-9a-fA-F]{24}$/.test(rawValue)) {
-      return courseIdMapById?.[rawValue] || rawValue;
-    }
-
-    if (typeof rawValue === "number" || !isNaN(rawValue)) {
-      return courseIndexMap?.[Number(rawValue)] || null;
-    }
-
-    if (typeof rawValue === "string") {
-      return courseIdMapByName?.[rawValue.trim().toLowerCase()] || null;
-    }
-
-    if (typeof rawValue === "object" && rawValue._id) {
-      return rawValue._id;
-    }
-
-    return null;
-  };
-
-  // ================================
-  // 🧹 CLEAN + VALIDATE
-  // ================================
-  const cleanTimelines = admissionSteps
-  .map((t, index) => {
-    if (
-      !t.courseId ||
-      !t.admissionStartDate ||
-      !t.admissionEndDate ||
-      !t.status ||
-      t.applicationFee === null
-    ) {
-      console.warn(
-        `⚠️ Skipping invalid admission timeline at index ${index}`,
-        t
-      );
-      return null;
-    }
-
-    return {
-      admissionStartDate: new Date(t.admissionStartDate),
-      admissionEndDate: new Date(t.admissionEndDate),
-      status: t.status.trim(),
-      applicationFee: Number(t.applicationFee),
-      course: t.courseId,
-      documentsRequired: (t.documentsRequired || [])
-        .map(d => d.trim())
-        .filter(Boolean),
-      eligibility: {
-        minQualification: t.eligibility?.minQualification,
-        otherInfo: t.eligibility?.otherInfo || ''
+      if (!alreadyExists) {
+        await addPlacementAPI(placement);
       }
-    };
-  })
-  .filter(Boolean);
-
-
-  if (!cleanTimelines.length) {
-    console.warn("⚠️ No valid admission timelines to save");
-    return;
-  }
-
-  const payload = {
-    collegeId,
-    timelines: cleanTimelines
-  };
-
-  console.log("📅 Sending Admission Timelines:", payload);
-
-  try {
-    await updateAdmissionTimeline(collegeId, payload);
-    console.log("✅ Admission timeline updated");
-  } catch (err) {
-    if (err.response?.status === 404) {
-      await addAdmissionTimeline(payload);
-      console.log("✅ Admission timeline created");
-    } else {
-      throw err;
     }
-  }
-}
 
+    // ========================
+    // 7️⃣ ADMISSION TIMELINES (SAFE)
+    // ========================
+    if (Array.isArray(admissionSteps) && admissionSteps.length) {
+      const cleanTimelines = admissionSteps
+        .map((t) => {
+          if (
+            !t ||
+            !t.courseId ||
+            !t.admissionStartDate ||
+            !t.admissionEndDate ||
+            !t.status ||
+            t.applicationFee === null ||
+            t.applicationFee === undefined
+          ) return null;
 
+          return {
+            admissionStartDate: new Date(t.admissionStartDate),
+            admissionEndDate: new Date(t.admissionEndDate),
+            status:
+              typeof t.status === "string"
+                ? t.status.trim()
+                : "",
+            applicationFee: Number(t.applicationFee),
+            course: t.courseId,
+            documentsRequired: Array.isArray(t.documentsRequired)
+              ? t.documentsRequired
+                  .map((d) =>
+                    typeof d === "string"
+                      ? d.trim()
+                      : null
+                  )
+                  .filter(Boolean)
+              : [],
+            eligibility: {
+              minQualification:
+                t?.eligibility?.minQualification || "",
+              otherInfo:
+                t?.eligibility?.otherInfo || "",
+            },
+          };
+        })
+        .filter(Boolean);
+
+      if (cleanTimelines.length) {
+        const payload = {
+          collegeId,
+          timelines: cleanTimelines,
+        };
+
+        try {
+          await updateAdmissionTimeline(
+            collegeId,
+            payload
+          );
+        } catch (err) {
+          if (err?.response?.status === 404) {
+            await addAdmissionTimeline(payload);
+          } else {
+            throw err;
+          }
+        }
+      }
+    }
 
     toast.success("🎉 College data saved successfully!");
   } catch (err) {
@@ -1677,8 +1676,96 @@ if (admissionSteps?.length) {
     toast.error("Something went wrong while saving data");
   }
 };
-      await saveAllCollegeData(collegeId, courses, admissionSteps);
 
+
+
+     await saveAllCollegeData(collegeId, courses, admissionSteps);
+
+if (formData.classFees?.length > 0 || (formData.feesTransparency !== '' && formData.feesTransparency != null)) {
+        // Validate and clean classFees
+       const validClassFees = (formData.classFees || [])
+  .filter(fee => fee.courseId && fee.tuition !== "")
+  .map(fee => ({
+    courseId: fee.courseId, // MUST be ObjectId string
+    tuition: Number(fee.tuition) || 0,
+    activity: Number(fee.activity) || 0,
+    transport: Number(fee.transport) || 0,
+    hostel: Number(fee.hostel) || 0,
+    misc: Number(fee.misc) || 0
+  }));
+
+
+
+        // Validate and clean scholarships
+        /*const validScholarships = (formData.scholarships || []).filter(sch => 
+          sch.name && sch.amount !== undefined && sch.amount >= 0 && sch.type
+        ).map(sch => {
+          const scholarship = {
+            name: sch.name,
+            amount: Number(sch.amount) || 0,
+            type: sch.type
+          };
+          // Only include documentsRequired if it has valid values (non-empty strings)
+          const docs = Array.isArray(sch.documentsRequired) 
+            ? sch.documentsRequired.filter(d => d && d.trim()) 
+            : [];
+          if (docs.length > 0) {
+            scholarship.documentsRequired = docs;
+          }
+          return scholarship;
+        });*/
+
+        if (validClassFees.length > 0 || validScholarships.length > 0 || (formData.feesTransparency !== '' && formData.feesTransparency != null)) {
+          // Map transparency string values to numbers (if backend expects numbers)
+          let transparencyValue;
+          if (formData.feesTransparency === 'full') transparencyValue = 100;
+          else if (formData.feesTransparency === 'partial') transparencyValue = 50;
+          else if (formData.feesTransparency === 'low') transparencyValue = 0;
+          else if (formData.feesTransparency !== '' && formData.feesTransparency != null) {
+            // If it's already a number, use it
+            transparencyValue = Number(formData.feesTransparency);
+          }
+          // =======================
+// 🎓 SCHOLARSHIPS (NEW MODEL)
+// =======================
+if (formData.scholarships?.length > 0) {
+
+  const validScholarships = formData.scholarships
+    .filter(sch =>
+      sch.name &&
+      sch.type &&
+      sch.amount !== undefined &&
+      sch.amount >= 0
+    )
+    .map(sch => ({
+      collegeId,
+      name: sch.name.trim(),
+      type: sch.type,
+      amount: Number(sch.amount) || 0,
+      documentsRequired: Array.isArray(sch.documentsRequired)
+        ? sch.documentsRequired.filter(d => d && d.trim())
+        : [],
+    }));
+
+  console.log("🎓 Sending Scholarships:", validScholarships);
+
+  for (const scholarship of validScholarships) {
+    await addScholarship(scholarship); // ✅ Scholarship API
+  }
+}
+
+          
+          const payloadFees = {
+            collegeId,
+            feesTransparency: transparencyValue,
+            classFees: validClassFees,
+           
+          };
+          console.log('💰 Sending Fees & Scholarships:', payloadFees);
+          promises.push(upsertCourseFee(payloadFees));
+         
+        }
+      }
 
 
 
@@ -1928,6 +2015,35 @@ if (admissionSteps?.length) {
     }
   };
    const selectedCollegeId = editingcollegeId || formData.collegeId;
+   useEffect(() => {
+  if (!selectedCollegeId) return;
+
+  const fetchAllData = async () => {
+    try {
+      // 1️⃣ Fetch Courses
+      const courseRes = await getCoursesByCollege(selectedCollegeId);
+      const fetchedCourses = courseRes?.data?.courses || courseRes?.data || [];
+
+      if (fetchedCourses.length > 0) {
+        setCourses(fetchedCourses);
+      }
+
+      // 2️⃣ Fetch Hostels
+      const hostelRes = await getHostelsByCollege(selectedCollegeId);
+      const fetchedHostels = hostelRes?.data?.data || hostelRes?.data || [];
+
+      if (fetchedHostels.length > 0) {
+        setHostels(fetchedHostels);
+      }
+
+    } catch (err) {
+      console.error("Error loading data:", err);
+    }
+  };
+
+  fetchAllData();
+}, [selectedCollegeId]);
+
 
   // 🔹 PASTE useEffect RIGHT HERE 👇
 useEffect(() => {
@@ -1952,6 +2068,31 @@ useEffect(() => {
 
   fetchHostels();
 }, [selectedCollegeId]);
+useEffect(() => {
+  if (!editingcollegeId) return;
+
+  const fetchScholarships = async () => {
+    try {
+      const res = await getScholarshipsByCollege(editingcollegeId);
+      const data = res.data || [];
+
+      setFormData(prev => ({
+        ...prev,
+        scholarships: data.map(s => ({
+          name: s.name || "",
+          type: s.type || "",
+          amount: s.amount || "",
+          documentsRequired: s.documentsRequired || []
+        }))
+      }));
+    } catch (err) {
+      console.error("❌ Scholarship fetch failed", err);
+    }
+  };
+
+  fetchScholarships();
+}, [editingcollegeId]);
+
 
 
 
@@ -3296,7 +3437,7 @@ useEffect(() => {
   </h3>
 </div>
 
-{course.exams.map((exam, eIndex) => (
+{(course.exams || []).map((exam, eIndex) => (
   <React.Fragment key={eIndex}>
     <div className="md:col-span-2 flex justify-between items-center">
       <p className="text-sm font-medium text-indigo-600">
@@ -3402,7 +3543,7 @@ useEffect(() => {
           </h3>
         </div>
 
-        {course.placements.map((place, pIndex) => (
+        {(course.placements || []).map((place, pIndex) => (
           <div
             key={pIndex}
             className="mb-8 bg-white border rounded-xl p-6 shadow"
@@ -3532,7 +3673,7 @@ useEffect(() => {
                 Top Recruiters
               </h6>
 
-              {place.topRecruiters.map((rec, rIndex) => (
+              {(place.topRecruiters || []).map((rec, rIndex) => (
                 <input
                   key={rIndex}
                   value={rec}
@@ -4419,16 +4560,22 @@ setHostels(list);
                   {(formData.classFees || []).map((fee, index) => (
                     <tr key={index} className="">
                       <td className="px-4 py-3">
-                       <input
-  type="text"
-  value={fee.courseName || ''}
-  onChange={(e) => {
-    const newFees = [...(formData.classFees || [])];
-    newFees[index].courseName = e.target.value;
-    setFormData(prev => ({ ...prev, classFees: newFees }));
-  }}
-  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-/>
+                    <select
+  value={fee.courseId || ""}
+  onChange={(e) =>
+    handleFeeChange(index, "courseId", e.target.value)
+  }
+>
+  <option value="">Select Course</option>
+
+  {courses.map((course) => (
+    <option key={course._id} value={course._id}>
+      {course.courseName}
+    </option>
+  ))}
+</select>
+
+
 
                       </td>
                       <td className="px-4 py-3">
